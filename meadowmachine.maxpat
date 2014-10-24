@@ -366,24 +366,6 @@
 					"fontname" : "Andale Mono",
 					"fontsize" : 12.0,
 					"frgb" : 0.0,
-					"id" : "obj-7",
-					"linecount" : 6,
-					"maxclass" : "comment",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 248.5, 247.5, 95.0, 89.0 ],
-					"presentation" : 1,
-					"presentation_linecount" : 3,
-					"presentation_rect" : [ 263.0, 260.0, 205.0, 48.0 ],
-					"text" : "TODO:\n-Write description\n-Implement all array funcs"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"fontname" : "Andale Mono",
-					"fontsize" : 12.0,
-					"frgb" : 0.0,
 					"id" : "obj-141",
 					"linecount" : 2,
 					"maxclass" : "comment",
@@ -1740,10 +1722,10 @@
 					"maxclass" : "comment",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 233.5, 206.5, 180.0, 197.0 ],
+					"patching_rect" : [ 233.5, 206.5, 180.0, 181.0 ],
 					"presentation" : 1,
 					"presentation_linecount" : 9,
-					"presentation_rect" : [ 20.5, 153.5, 234.0, 165.0 ],
+					"presentation_rect" : [ 20.5, 153.5, 234.0, 150.0 ],
 					"text" : "meadowmachine 0.1\n10.23.2014\nmod by Raymond Weitekamp\nof\nmeadowphysics by tehn\ninspired by\nCMMV by Dan Trueman\netc...\nhttp://ingmob.com\n",
 					"textjustification" : 1
 				}
@@ -2985,14 +2967,14 @@
  ],
 		"dependency_cache" : [ 			{
 				"name" : "serialosc.maxpat",
-				"bootpath" : "/Users/rweitekamp/Documents/Monome/meadowphysics-1.3-RAW_MeadowMachine",
+				"bootpath" : "/Users/rweitekamp/meadowmachine",
 				"patcherrelativepath" : ".",
 				"type" : "JSON",
 				"implicit" : 1
 			}
 , 			{
 				"name" : "mm.js",
-				"bootpath" : "/Users/rweitekamp/Documents/Monome/meadowphysics-1.3-RAW_MeadowMachine",
+				"bootpath" : "/Users/rweitekamp/meadowmachine",
 				"patcherrelativepath" : ".",
 				"type" : "TEXT",
 				"implicit" : 1
