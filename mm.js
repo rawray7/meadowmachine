@@ -1,3 +1,21 @@
+//RAW 10.23.14 meadowMachine mod
+
+/*TODO:
+=> implement proper resets for other modes
+x=> UPDATE ALL METHODS TO REFERENCE ARRAY
+x=> USE MAX to input arrays, and change whether a press is a trigger or not
+x=> USE MAX to trigger switching between arrays
+*/
+//--
+var pulses = new Array(4,3,2,3); //Clapping Music
+//var pulses = new Array(6,4,6,8); //Clapping Music double
+var pulseIndexPerRow = new Array(0,0,0,0,0,0,0,0);
+var pressedTrig = new Array(0,0,0,0,0,0,0,0);
+var pressTrigOn = 0;
+var pressTrigHold = 0;
+
+//--
+
 inlets = 1;
 outlets = 1;
 
@@ -156,11 +174,14 @@ function key(kx, ky, state) {
 			mode = 1;
 	}
 	else if(mode == 0 && state == 1) {
+		press_trigger(ky); //***MACHINE
 		points[ky] = kx;
 		points_save[ky] = kx;
 		positions[ky] = kx;
 		dirty_grid = 1;
+
 	}
+	else if (mode == 0 && state == 0){releasePress_trigger();}
 	else if(mode == 1 && state == 1) {
 		if(ky != edit_row) {		// filter out self-triggering
 			trig_dests[edit_row] ^= (1<<ky);
@@ -202,16 +223,78 @@ function next() {
 	for(n1=0;n1<8;n1++) {
 		if(positions[n1] < 0)
 			positions[n1] = 0;
-		else if(positions[n1] > points[n1])
+		else if(positions[n1] > points[n1]){
 			positions[n1] = points[n1];
+		}
 
 		outlet(0,"position",n1,positions[n1]);
 
 		if(triggers[n1]) {
 			outlet(0,"trigger",n1);
+		} else if (pressedTrig[n1]){
+			outlet(0,"trigger",n1);
 		}
 	}
 	dirty_grid = 1;
+
+	for(n1=0;n1<8;n1++)
+		pressedTrig[n1] = 0;
+}
+
+function press_trigger(n1){
+	if(pressTrigOn){
+		if(pressTrigHold==0){
+			pressedTrig[n1]++;
+			pressTrigHold = 1;
+			//post("\nretriggered")
+		} else {
+			//post("\nblocked by hold");
+		}
+	}
+
+}
+
+function releasePress_trigger(){
+	pressTrigHold = 0;
+	//post("\nreleased the hold");
+}
+
+function pressTrigToggle(bool){
+	pressTrigOn = bool;
+	//post("\nset pressTrigOn to:", bool);
+}
+
+function parseString(string){
+	//post("\n",string);
+	var pattern = /\s*:\s*/;
+	pulses = string.split(pattern);
+	post(pulses);
+}
+
+function resetPositions(){
+	for(var i=0;i<positions.length;i++){
+		if(rules[i]==1){ //reset the pulse index for inc mode
+			pulseIndexPerRow[i] = 0;
+			//points[i] = pulses[pulseIndexPerRow[i]] - 1; 
+			setPoint(i,pulseIndexPerRow[i]);
+		} else if (rules[i] == 2){//reset the pulse index for dec mode
+			pulseIndexPerRow[i] = pulses.length - 1;
+			setPoint(i,pulseIndexPerRow[i]);
+		}
+		//positions[i] = points[i];
+		if(positions[i]!=points[i]){
+			positions[i] = 0;
+		}
+	}
+}
+
+function setPoint(_which,_point){
+	if( (_point >= 0) && (_point < XSIZE) ){
+		points[_which] = _point;
+		positions[_which] = points[_which];
+	} else {
+		post("\nInvalid Position");
+	}
 }
 
 function apply_trigger(n) {
@@ -224,38 +307,72 @@ function apply_trigger(n) {
 	if(positions[n] < 0 && triggers[n] == 0) {
 		triggers[n]++;
 	
-		if(rules[n] == 1) {			// inc
-			if(points[rule_dests[n]] < (XSIZE-1)) {
-				points[rule_dests[n]]++;
-				positions[rule_dests[n]] = points[rule_dests[n]];
+		if(rules[n] == 1) {			// inc **MACHINE MOD**
+			
+			if(pulseIndexPerRow[n] > pulses.length - 1) {
+				pulseIndexPerRow[n] = 0;
 			}
+
+			//post("\n", pulseIndexPerRow[n], " ", pulses[pulseIndexPerRow[n]] - 1);
+
+			//**TODO** - ERROR CHECKING FOR SIZE
+			setPoint(rule_dests[n],pulses[pulseIndexPerRow[n]] - 1);
+			
+			pulseIndexPerRow[n]++;
+			//post(positions[rule_dests[n]]);
+
 		}
-		else if(rules[n] == 2) {	// dec
-			if(points[rule_dests[n]] > 0) {
-				points[rule_dests[n]]--;
-				positions[rule_dests[n]] = points[rule_dests[n]];
+		else if(rules[n] == 2) {	// dec 			//**TODO, ADD 
+
+				if(pulseIndexPerRow[n] < 0) {
+					pulseIndexPerRow[n] = pulses.length - 1;
+				}
+
+				//post("\n", pulseIndexPerRow[n], " ", pulses[pulseIndexPerRow[n]] - 1);
+
+				//**TODO** - ERROR CHECKING FOR SIZE
+				setPoint(rule_dests[n],pulses[pulseIndexPerRow[n]] - 1);;
+				
+				pulseIndexPerRow[n]--;
+		}
+		else if(rules[n] == 3) {	// max			//**TODO, ADD 
+			var max = pulses[0];
+			var i = 1;
+			for(i; i < pulses.length; i++){
+				if(pulses[i]>max) max = pulses[i];
 			}
+
+			setPoint(rule_dests[n],max - 1)
 		}
-		else if(rules[n] == 3) {	// max
-			points[rule_dests[n]] = (XSIZE-1);
-			positions[rule_dests[n]] = points[rule_dests[n]];
+		else if(rules[n] == 4) {	// min 			//**TODO, ADD 
+			var min = pulses[0];
+			var i = 1;
+			for(i; i < pulses.length; i++){
+				if(pulses[i]<min) min = pulses[i];
+			}
+
+			setPoint(rule_dests[n],min - 1);
+
 		}
-		else if(rules[n] == 4) {	// min
-			points[rule_dests[n]] = 0;
-			positions[rule_dests[n]] = points[rule_dests[n]];
+		else if(rules[n] == 5) {	// rand 		//**TODO
+			var randIndex = Math.floor(Math.random() * (pulses.length));
+			setPoint(rule_dests[n],pulses[randIndex] - 1);
 		}
-		else if(rules[n] == 5) {	// rnd
-			points[rule_dests[n]] = Math.floor(Math.random()*XSIZE);
-			positions[rule_dests[n]] = points[rule_dests[n]];
-		}
-		else if(rules[n] == 6) {	// up/down
-			points[rule_dests[n]] += Math.floor(Math.random()*3) - 1;
-			if(points[rule_dests[n]] < 0) points[rule_dests[n]] = 0;
-			else if(points[rule_dests[n]] > (XSIZE-1)) points[rule_dests[n]] = XSIZE-1;
-			positions[rule_dests[n]] = points[rule_dests[n]];			
+		else if(rules[n] == 6) {	// up/down 		//**ERROR CHECK BOUNDS
+			if(Math.random() > 0.50){
+				pulseIndexPerRow[n]++;
+			} else {
+				pulseIndexPerRow[n]--;
+			}
+
+			//bounds checking
+			if(pulseIndexPerRow[n] > pulses.length - 1) pulseIndexPerRow[n] = pulses.length - 1;
+			if(pulseIndexPerRow[n] < 0) pulseIndexPerRow[n] = 0;
+
+			setPoint(rule_dests[n],pulses[pulseIndexPerRow[n]] - 1);		
 		}
 		else if(rules[n] == 7) {	// return
-			points[rule_dests[n]] = points_save[rule_dests[n]];
+			setPoint(rule_dests[n],points_save[rule_dests[n]]);
 		}
 
 
@@ -266,6 +383,6 @@ function apply_trigger(n) {
 		for(m=0;m<8;m++)
 			if((trig_dests[n] & (1<<m)) != 0)
 				apply_trigger(m);
-				// post("\ntrigger",n," -> ", m);
+				 //post("\ntrigger",n," -> ", m);
 	}
 }
